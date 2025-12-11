@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual env
+.venv/
+venv/
+ENV/
+env/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# dotenv / secrets
+.env
+.env.local
+.env.*.local
+
+# archives / zips
+*.zip
+*.tar.gz
+
+# IDE
+.vscode/
+.idea/
