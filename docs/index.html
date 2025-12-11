@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Embedded Checkout Demo</title>
+
+<style>
+  body {
+    font-family: Inter, Arial, sans-serif;
+    margin: 0;
+    background: #eef2f7;
+  }
+
+  header {
+    background: white;
+    padding: 22px 36px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    background: #2563eb;
+    color: white;
+    padding: 10px 18px;
+    border-radius: 10px;
+    margin-right: 16px;
+    font-size: 20px;
+    font-weight: bold;
+  }
+
+  main {
+    max-width: 1200px;
+    margin: 34px auto;
+    background: white;
+    padding: 32px;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  }
+
+  h1 {
+    margin-top: 0;
+  }
+
+  input, select {
+    padding: 10px;
+    width: 240px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    margin-bottom: 12px;
+  }
+
+  button {
+    background: #2563eb;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    cursor: pointer;
+  }
+
+  #payment-display {
+    margin-top: 24px;
+    padding: 18px;
+    background: #f8fafc;
+    border-radius: 10px;
+    border: 1px solid #dbe3f0;
+    font-family: monospace;
+  }
+
+  #log-output {
+    margin-top: 24px;
+    padding: 14px;
+    background: #1e293b;
+    color: #e2e8f0;
+    font-family: monospace;
+    border-radius: 10px;
+    height: 260px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+  }
+</style>
+
+</head>
+<body>
+
+<header>
+  <div class="logo" id="site-logo">Site</div>
+  <div>
+    <h1 id="site-title">Embedded Payment Checkout Demo</h1>
+    <div style="font-size:14px;color:#555">URL: <span id="site-url">http://localhost:3000</span></div>
+  </div>
+</header>
+
+<main>
+
+<h2>Create Test Payment</h2>
+
+<label>Amount (minor units)</label><br>
+<input id="amount" value="100"><br>
+
+<label>Currency</label><br>
+<select id="currency">
+  <option>USD</option>
+  <option>EUR</option>
+  <option>INR</option>
+</select><br>
+
+<label>Description</label><br>
+<input id="description" value="Embedded checkout test payment"><br>
+
+<button onclick="startDemo()">Start Demo</button>
+
+<div id="payment-display">No payment created yet.</div>
+
+<h3>Log Output</h3>
+<div id="log-output">Ready…</div>
+
+</main>
+
+
+<script>
+function log(msg){
+  let pane = document.getElementById("log-output");
+  pane.textContent += "\n" + msg;
+  pane.scrollTop = pane.scrollHeight;
+}
+
+async function loadConfig(){
+  try {
+    let r = await fetch("/config");
+    let j = await r.json();
+
+    document.getElementById("site-title").textContent = j.site_name;
+    document.getElementById("site-logo").textContent = j.site_name.split(" ")[0];
+    document.getElementById("site-url").textContent = j.site_url;
+
+  } catch (e){
+    log("Could not load config.");
+  }
+}
+
+async function startDemo(){
+  log("Starting demo…");
+
+  let payload = {
+    amount: parseInt(document.getElementById("amount").value),
+    currency: document.getElementById("currency").value,
+    description: document.getElementById("description").value
+  };
+
+  log("Calling backend /create-payment…");
+
+  let r = await fetch("/create-payment", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(payload)
+  });
+
+  let j = await r.json();
+  log("Backend response:\n" + JSON.stringify(j, null, 2));
+
+  document.getElementById("payment-display").innerHTML =
+    `<strong>Payment ID:</strong> ${j.payment.id}<br>
+     <strong>Status:</strong> ${j.payment.status}<br>
+     <strong>Amount:</strong> ${j.payment.amount} ${j.payment.currency}`;
+}
+
+loadConfig();
+</script>
+
+</body>
+</html>
